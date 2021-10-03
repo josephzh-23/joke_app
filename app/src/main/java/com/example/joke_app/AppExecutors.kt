@@ -13,7 +13,6 @@ class AppExecutors {
 			return mNetworkIO
 		}
 
-
 	companion object {
 		var instance: AppExecutors? = null
 			get() {

@@ -57,8 +57,11 @@ class Get_Joke_Fragment : Fragment() {
 // Used to handle background related tasks
     var handler = AppExecutors.instance?.td!!
 
-    private var param1: String? = null
-    private var param2: String? = null
+
+    val EMAIL = "email"
+    val USER_GENDER = "user_gender"
+    val USER_FRIENDS= "user_friends"
+
     lateinit var  dbTask: DbTask
     lateinit var viewModel: View_Model
     private var _binding: FragmentGetJokeBinding?=null
@@ -79,11 +82,7 @@ class Get_Joke_Fragment : Fragment() {
 
 
 
-        // Check if user logged in
 
-        val EMAIL = "email"
-        val USER_GENDER = "user_gender"
-        val USER_FRIENDS= "user_friends"
 
         loginButton = binding.loginButton
 
@@ -98,8 +97,6 @@ class Get_Joke_Fragment : Fragment() {
         subscribe_fetch_observer()
         loginButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
             override fun onSuccess(loginResult: LoginResult?) {
-
-
             }
 
             override fun onCancel() {
