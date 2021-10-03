@@ -17,6 +17,10 @@ class View_Model(): ViewModel() {
 
     var isUserLoggedin: MutableLiveData<Boolean> = MutableLiveData<Boolean>(false)
 
+
+    fun toggle_user_login(bool:Boolean){
+        isUserLoggedin.value = bool
+    }
     fun addJoke(joke: Joke):Int {
 
         var res = JokeDB.saveJoke(joke)

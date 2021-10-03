@@ -33,13 +33,8 @@ object JokeDB :
 	}
 
 
-
-	/*
-	For each upgrade, called when this needs to be done
-	 */
 	override fun onUpgrade(MyDB: SQLiteDatabase, i: Int, i1: Int) {
 		MyDB.execSQL("drop Table if exists $TABLE_NAME")
-
 
 	}
 
@@ -48,7 +43,6 @@ object JokeDB :
 		var result = -1
 		val contentValues = ContentValues()
 
-		// We have to make sure we are inserting into the right columns
 		contentValues.put(ID_COL, joke.id)
 		contentValues.put(JOKE_COL, joke.joke)
 		contentValues.put(STATUS_COL, joke.status)

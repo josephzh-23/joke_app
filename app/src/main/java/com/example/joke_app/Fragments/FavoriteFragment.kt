@@ -76,22 +76,45 @@ class FavoriteFragment : Fragment(), OnItemClickListener {
         setupRecyclerView()
 
 
-        val swipeCallback: ItemTouchHelper.SimpleCallback = object :
-            ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                // remove item from adapter
-
-                val position = viewHolder.adapterPosition
-                when(direction){
-                    ItemTouchHelper.LEFT-> {
+        val itemTouchHelper = ItemTouchHelper(swipeCallback)
+        itemTouchHelper.attachToRecyclerView(recyclerView)
+        viewModel = ViewModelProvider(requireActivity()).get(View_Model::class.java)
 
 
-                        val deletedJoke = jokeList.get(position)
+        // Load the jokes from database
+        (activity as MainActivity).showProgressBar(true)
+
+        handler.submit {
+            viewModel.load_jokes_from_db()
+        }
+
+        subscribeObservers()
+        (activity as MainActivity).showProgressBar(false)
+        val view = binding.root
+        return view
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.shutdown()
+    }
+
+    val swipeCallback: ItemTouchHelper.SimpleCallback = object :
+        ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            // remove item from adapter
+
+            val position = viewHolder.adapterPosition
+            when(direction){
+                ItemTouchHelper.LEFT-> {
 
 
-                        dbTask = DbTask({viewModel.deleteJoke(deletedJoke)},  deletedJoke)
-                        var result = handler.submit (dbTask)
-                        var value = result.get() as Int
+                    val deletedJoke = jokeList.get(position)
+
+
+                    dbTask = DbTask({viewModel.deleteJoke(deletedJoke)},  deletedJoke)
+                    var result = handler.submit (dbTask)
+                    var value = result.get() as Int
 
 //                        var task = DbTask()
 //                        task.call()
@@ -114,91 +137,69 @@ class FavoriteFragment : Fragment(), OnItemClickListener {
 //                        }
 
 
-                        Log.i(TAG, "onSwiped: the value deleted $value")
+                    Log.i(TAG, "onSwiped: the value deleted $value")
 
-                        jokeList.removeAt(position)
-                        listAdapter.notifyItemChanged(position)
+                    jokeList.removeAt(position)
+                    listAdapter.notifyItemChanged(position)
 
-                        recyclerView?.let {
-                            Snackbar.make(it,"Delete this ", Snackbar.LENGTH_SHORT)
-                                .setAction("Undo this action", View.OnClickListener {
-                                   jokeList.add(deletedJoke)
-                                    listAdapter.notifyItemInserted(position)
-                                }).show()
-                        }
+                    recyclerView?.let {
+                        Snackbar.make(it,"Delete this ", Snackbar.LENGTH_SHORT)
+                            .setAction("Undo this action", View.OnClickListener {
+                                jokeList.add(deletedJoke)
+                                listAdapter.notifyItemInserted(position)
+                            }).show()
                     }
-                    ItemTouchHelper.RIGHT-> {
+                }
+                ItemTouchHelper.RIGHT-> {
 
                 }
 
-                }
             }
+        }
 
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean {
-                return false
-            }
+        override fun onMove(
+            recyclerView: RecyclerView,
+            viewHolder: RecyclerView.ViewHolder,
+            target: RecyclerView.ViewHolder
+        ): Boolean {
+            return false
+        }
 
-            override fun onChildDraw(
-                c: Canvas,
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                dX: Float,
-                dY: Float,
-                actionState: Int,
-                isCurrentlyActive: Boolean
-            ) {
+        override fun onChildDraw(
+            c: Canvas,
+            recyclerView: RecyclerView,
+            viewHolder: RecyclerView.ViewHolder,
+            dX: Float,
+            dY: Float,
+            actionState: Int,
+            isCurrentlyActive: Boolean
+        ) {
 
 
-                RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-                    .addBackgroundColor(
-                        ContextCompat.getColor(
-                            App.instance,
-                            R.color.holo_blue_bright
-                        )
+            RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                .addBackgroundColor(
+                    ContextCompat.getColor(
+                        App.instance,
+                        R.color.holo_blue_bright
                     )
-                    .addActionIcon(R.drawable.ic_delete)
-                    .create()
-                    .decorate()
-                super.onChildDraw(
-                    c,
-                    recyclerView,
-                    viewHolder,
-                    dX,
-                    dY,
-                    actionState,
-                    isCurrentlyActive
                 )
+                .addActionIcon(R.drawable.ic_delete)
+                .create()
+                .decorate()
+            super.onChildDraw(
+                c,
+                recyclerView,
+                viewHolder,
+                dX,
+                dY,
+                actionState,
+                isCurrentlyActive
+            )
 
 
 
-            }
         }
-
-
-        val itemTouchHelper = ItemTouchHelper(swipeCallback)
-        itemTouchHelper.attachToRecyclerView(recyclerView)
-        viewModel = ViewModelProvider(requireActivity()).get(View_Model::class.java)
-        subscribeObservers()
-
-        // Load the jokes from database
-        (activity as MainActivity).showProgressBar(true)
-
-        handler.submit {
-            viewModel.load_jokes_from_db()
-        }
-
-
-
-
-        val view = binding.root
-        return view
     }
-
-
 
 
     private fun setupRecyclerView() {
@@ -238,6 +239,9 @@ class FavoriteFragment : Fragment(), OnItemClickListener {
     }
 
     private fun subscribeObservers() {
+
+
+
         // Based on update from the complete list
         viewModel.jokeList.observe(viewLifecycleOwner, object : Observer<ArrayList<Joke>> {
             @SuppressLint("NotifyDataSetChanged")
@@ -247,8 +251,9 @@ class FavoriteFragment : Fragment(), OnItemClickListener {
                 for (i in 0 until viewModel.jokeList.value?.size!!) {
                     jokeList!!.add(viewModel.jokeList.value!![i])
                 }
+
+
                 listAdapter.notifyDataSetChanged()
-                (activity as MainActivity).showProgressBar(false)
 
 
             }

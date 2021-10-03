@@ -11,7 +11,7 @@ import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import com.example.joke_app.databinding.FragmentGetJokeBinding
 import com.facebook.login.widget.LoginButton
-import com.smartherd.globofly.services.Django_Service
+import com.smartherd.globofly.services.APIService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -70,6 +70,23 @@ class Get_Joke_Fragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        callbackManager = CallbackManager.Factory.create()
+        LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
+            override fun onSuccess(loginResult: LoginResult?) {
+
+                Log.i(TAG, "onSuccess: user logged in ")
+            }
+
+            override fun onCancel() {
+
+                Log.i(TAG, "onCancel: logged in cancelled")
+            }
+
+            override fun onError(exception: FacebookException) {
+                // App code
+            }
+        })
     }
 
     override fun onCreateView(
@@ -84,9 +101,9 @@ class Get_Joke_Fragment : Fragment() {
 
 
 
+
         loginButton = binding.loginButton
 
-        callbackManager = CallbackManager.Factory.create();
         loginButton.setReadPermissions(Arrays.asList(EMAIL, USER_FRIENDS, USER_GENDER))
 
         loginButton.setFragment(this)
@@ -95,33 +112,12 @@ class Get_Joke_Fragment : Fragment() {
 
 
         subscribe_fetch_observer()
-        loginButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
-            override fun onSuccess(loginResult: LoginResult?) {
-            }
-
-            override fun onCancel() {
-
-                Log.i(TAG, "onCancel: logged in cancelled")
-            }
-
-            override fun onError(exception: FacebookException) {
-                // App code
-            }
-        })
 
 
-        callbackManager = CallbackManager.Factory.create()
+
+
 
         binding.jokeImage.setImageResource(R.drawable.funny)
-
-
-//        binding.shareButton.setOnClickListener {
-//            if (binding.getJokeText.text != "") {
-//            } else {
-//                showSnackbar(it, "Click on the get button to share the joke")
-//            }
-//        }
-// Chekc if the user is logged in
 
 
         binding.shareButton.setOnClickListener {
@@ -226,12 +222,12 @@ class Get_Joke_Fragment : Fragment() {
         })
 
 
+        // Only allow sharing of joke after user gets a joke from API
         viewModel.isJokeFetched.observe(viewLifecycleOwner, {
 
 
             Log.i(TAG, "subscribe_fetch_observer: logged in observer")
             if(it){
-
                 enable_share_link(currentJoke?.joke)
             }
         })
@@ -277,6 +273,10 @@ class Get_Joke_Fragment : Fragment() {
         ) {
             if(currentAccessToken== null){
                 LoginManager.getInstance().logOut()
+
+                viewModel.toggle_user_login(false)
+                binding.nameField.setText("")
+        binding.profilePic.setImageResource(0)
             }
         }
 
@@ -312,7 +312,7 @@ class Get_Joke_Fragment : Fragment() {
         var joke: Joke? = null
         try {
             val client =
-                ServiceBuilder.buildService(Django_Service::class.java)
+                ServiceBuilder.buildService(APIService::class.java)
 
             // See if this fixes anything
             val call: Call<Joke> = client.get_random_jokes()

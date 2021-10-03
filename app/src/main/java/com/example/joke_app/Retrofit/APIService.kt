@@ -7,13 +7,11 @@ import retrofit2.Call
 import retrofit2.http.*
 
 
-interface Django_Service {
+interface APIService {
 
 
     @Headers("Accept: application/json")
 	@GET(".")
     fun get_random_jokes(): Call<Joke>
-
-
 
 }

@@ -1,7 +1,5 @@
 package com.example.joke_app
 
-import android.annotation.SuppressLint
-import android.content.ContentValues
 import android.content.ContentValues.TAG
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -11,22 +9,12 @@ import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager.widget.ViewPager
 import com.example.joke_app.Fragments.FavoriteFragment
 import com.example.joke_app.Fragments.Get_Joke_Fragment
 import com.example.joke_app.databinding.ActivityMainBinding
 import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.tabs.TabLayout
-import com.google.gson.GsonBuilder
-import com.ledsmart.grow3.Syncing.Modes_RecyclerAdapter
-import com.smartherd.globofly.services.Django_Service
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
@@ -61,7 +49,7 @@ class MainActivity : AppCompatActivity() {
 
 
     fun showProgressBar(visible: Boolean) {
-        progressBar.setVisibility(if (visible) View.VISIBLE else View.INVISIBLE)
+        progressBar.setVisibility(if (visible) View.VISIBLE else View.GONE)
     }
 
 
@@ -71,8 +59,6 @@ class MainActivity : AppCompatActivity() {
 
        fav_joke_fragment = FavoriteFragment()
         get_joke_fragment = Get_Joke_Fragment()
-
-
 
         tabLayout.setupWithViewPager(viewPager)
 
