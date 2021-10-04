@@ -144,9 +144,9 @@ class Get_Joke_Fragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         callbackManager.onActivityResult(requestCode, resultCode, data)
         super.onActivityResult(requestCode, resultCode, data)
-        
-        viewModel.login()
-          get_user_info()
+
+        check_login_status()
+
     }
 
 
