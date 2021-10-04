@@ -61,9 +61,10 @@ class FavoriteFragment : Fragment(){
         Log.i(TAG, "onCreateView: favorite fragment ")
         setupRecyclerView()
 
-
         val itemTouchHelper = ItemTouchHelper(swipeCallback)
         itemTouchHelper.attachToRecyclerView(recyclerView)
+
+
         viewModel = ViewModelProvider(requireActivity()).get(View_Model::class.java)
 
 
@@ -75,6 +76,7 @@ class FavoriteFragment : Fragment(){
         }
 
         setupObserver()
+
         (activity as MainActivity).showProgressBar(false)
         val view = binding.root
         return view
@@ -90,10 +92,10 @@ class FavoriteFragment : Fragment(){
         _binding = null
     }
 
+
     val swipeCallback: ItemTouchHelper.SimpleCallback = object :
         ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            // remove item from adapter
 
             val position = viewHolder.adapterPosition
             when(direction){
@@ -181,6 +183,7 @@ class FavoriteFragment : Fragment(){
             @SuppressLint("NotifyDataSetChanged")
 
             override fun onChanged(p0: ArrayList<Joke>?) {
+
                 jokeList.clear()
                 for (i in 0 until viewModel.jokeList.value?.size!!) {
                     jokeList!!.add(viewModel.jokeList.value!![i])
