@@ -27,12 +27,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var get_joke_fragment: Get_Joke_Fragment
     lateinit var fav_joke_fragment: FavoriteFragment
     lateinit var binding:ActivityMainBinding
-    /*
-     A singleton-patterned background thread-pool used to handle
-     background tasks
-     */
-
-    lateinit var viewModel: View_Model
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,10 +34,7 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
 
-
         progressBar =binding.progressBar
-
-
         setup_tablayout()
     }
 

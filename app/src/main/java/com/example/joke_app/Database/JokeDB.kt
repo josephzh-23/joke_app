@@ -12,14 +12,13 @@ object JokeDB :
 	SQLiteOpenHelper(App.instance, "jokes-database.db", null, 1) {
 
 
-	 val TAG = "JokeDB class "
+	 val TAG = "JokeDB class"
 
 	private const val TABLE_NAME = "joke"
 
 	private const val ID_COL = "id" // Column I
 		private const val JOKE_COL = "joke" //Column II
 		private const val STATUS_COL = "Password" // Column III
-
 
 	val db = this.writableDatabase
 
@@ -46,8 +45,6 @@ object JokeDB :
 		contentValues.put(ID_COL, joke.id)
 		contentValues.put(JOKE_COL, joke.joke)
 		contentValues.put(STATUS_COL, joke.status)
-
-
 		try {
 		 result= db.insert(TABLE_NAME, null, contentValues).toInt()
 		} catch (e: Exception) {
@@ -57,10 +54,15 @@ object JokeDB :
 	}
 
 
-	// Delete by the id from when user selects it
 	fun deleteJoke(id: String): Int {
 		val whereArgs = arrayOf(id)
-		var res =db.delete(TABLE_NAME, ID_COL.toString() + " = ?", whereArgs)
+		var res = -1
+
+		try {
+			res = db.delete(TABLE_NAME, ID_COL.toString() + " = ?", whereArgs)
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
 		return res
 	}
 
@@ -68,7 +70,6 @@ object JokeDB :
 	fun fetch_fav_jokes():ArrayList<Joke>{
 		val list = ArrayList<Joke>()
 		val db = this.readableDatabase
-
 		val columns = arrayOf<String>(ID_COL, JOKE_COL, STATUS_COL)
 		try {
 			val cursor =db.query(TABLE_NAME, columns, null, null, null, null,null)
@@ -77,11 +78,9 @@ object JokeDB :
 				cursor.moveToFirst()
 				while (!cursor.isAfterLast()) {
 
-
 					val id = cursor.getString(0)
 					val joke = cursor.getString(1)
 					val status = cursor.getString(2)
-
 
 					val recipe = Joke(
 						id, joke, status

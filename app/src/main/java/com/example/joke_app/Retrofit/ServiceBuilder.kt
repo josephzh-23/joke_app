@@ -10,15 +10,14 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+// Used to build retrofit service
 object ServiceBuilder {
 
     private const val URL = "https://icanhazdadjoke.com/"
 
-    // Create OkHttp Client
+    // Create OkHttp Client with a timeout
     val okHttp = OkHttpClient.Builder()
                                         .callTimeout(5, TimeUnit.SECONDS)
-
-
     // Create Retrofit Builder
     private val builder = Retrofit.Builder().baseUrl(URL)
                                         .addConverterFactory(GsonConverterFactory.create())
@@ -27,7 +26,6 @@ object ServiceBuilder {
     // Create Retrofit Instance
     private val retrofit = builder.build()
 
-    // Used to build services
     fun <T> buildService(serviceType: Class<T>): T {
         return retrofit.create(serviceType)
     }

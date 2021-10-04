@@ -44,17 +44,15 @@ import com.smartherd.globofly.services.ServiceBuilder
  * create an instance of this fragment.
  */
 class Get_Joke_Fragment : Fragment() {
-    // TODO: Rename and change types of parameters
+
     val TAG = "Get_Joke_Fragment"
-    // Used to handle UI related tasks
 
-
-    var isLoggedIn: Boolean = false
     lateinit var loginButton: LoginButton
     lateinit var callbackManager: CallbackManager
 
     // Used to handle UI related tasks
     var uiHandler = Handler()
+
 // Used to handle background related tasks
     var handler = AppExecutors.instance?.td!!
 
@@ -66,26 +64,25 @@ class Get_Joke_Fragment : Fragment() {
     lateinit var  dbTask: DbTask
     lateinit var viewModel: View_Model
     private var _binding: FragmentGetJokeBinding?=null
+
     private val binding get() = _binding!!
      var currentJoke: Joke ?=null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        //Handle callback for successful login
         callbackManager = CallbackManager.Factory.create()
         LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
             override fun onSuccess(loginResult: LoginResult?) {
-
                 Log.i(TAG, "onSuccess: user logged in ")
             }
 
             override fun onCancel() {
-
                 Log.i(TAG, "onCancel: logged in cancelled")
             }
 
             override fun onError(exception: FacebookException) {
-                // App code
             }
         })
     }
@@ -98,60 +95,28 @@ class Get_Joke_Fragment : Fragment() {
         viewModel = ViewModelProvider(requireActivity()).get(View_Model::class.java)
 
 
-
-
-
-
-
-        loginButton = binding.loginButton
-
-        loginButton.setReadPermissions(Arrays.asList(EMAIL, USER_FRIENDS, USER_GENDER))
-
-        loginButton.setFragment(this)
-
         check_login_status()
-
-
-        subscribe_fetch_observer()
-
-
-
-
+        setupObserver()
 
         binding.jokeImage.setImageResource(R.drawable.funny)
 
-
-        binding.shareButton.setOnClickListener {
-
-            if(currentJoke!=null) {
-                enable_share_link(currentJoke?.joke)
-            }else{
-                showSnackbar(it, "Make sure you get a joke first")
-            }
-        }
-
+        loginButton = binding.loginButton
+        loginButton.setReadPermissions(Arrays.asList(EMAIL, USER_FRIENDS, USER_GENDER))
+        loginButton.setFragment(this)
 
         val view = binding.root
 
         binding.btnGetJoke.setOnClickListener {
             handler.submit {
-
                 retrieveJoke()
             }
         }
 
-
         binding.btnSaveJoke.setOnClickListener{
-
-            Log.i(TAG, "onCreateView: $currentJoke")
             if (currentJoke != null) {
-
-
-
 
                 dbTask = DbTask({viewModel.addJoke(currentJoke!!)}, currentJoke!!)
                 var result = handler.submit (dbTask)
-
 
                 var value = result.get() as Int
                 if (value < 0) {
@@ -161,99 +126,79 @@ class Get_Joke_Fragment : Fragment() {
                 }
             } else{
                 showSnackbar(it, "Click on \"GET JOKE\" button first ")
-
             }
         }
-
         return view
-
-
     }
 
+    // Enable user to share the joke
     private fun enable_share_link(joke: String?) {
-
-
-        Log.i(TAG, "enable_share_link: current joke is ${currentJoke?.joke.toString()}")
         val shareLinkContent = ShareLinkContent.Builder()
             .setQuote(joke).
                 setContentUrl(Uri.parse("https://icanhazdadjoke.com")).build()
 
         binding.shareButton.shareContent = shareLinkContent
-
     }
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-
         callbackManager.onActivityResult(requestCode, resultCode, data)
         super.onActivityResult(requestCode, resultCode, data)
-
+        
         viewModel.login()
-       get_user_info()
-
+          get_user_info()
     }
 
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 
     fun check_login_status(){
-
         val accessToken = AccessToken.getCurrentAccessToken()
         viewModel.isUserLoggedin.value = accessToken != null && !accessToken.isExpired
 
         if(viewModel.isUserLoggedin.value!!){
          get_user_info()
         }
-
     }
 
 
 
-    fun subscribe_fetch_observer(){
-
-
+    // set up observer to subscribe to update to isUserLoggedin and isJokeFetched
+    fun setupObserver(){
 
         viewModel.isUserLoggedin.observe(viewLifecycleOwner, {
-
-
-            Log.i(TAG, "subscribe_fetch_observer: logged in observer")
             if(it){
-
                 binding.shareButton.visibility = View.VISIBLE
             }else{
                 binding.shareButton.visibility = View.INVISIBLE
-
             }
         })
 
-
         // Only allow sharing of joke after user gets a joke from API
         viewModel.isJokeFetched.observe(viewLifecycleOwner, {
-
-
-            Log.i(TAG, "subscribe_fetch_observer: logged in observer")
             if(it){
                 enable_share_link(currentJoke?.joke)
             }
         })
-
-
     }
+
+
     // Get logged-in user information
     private fun get_user_info() {
         var graphRequest: GraphRequest = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken() ){
                 obj, response->
             Log.i(TAG, "onActivityResult: ${obj.toString()}")
 
-
-
             try{
                 val name = obj.getString("name")
                 val id = obj.getString("id")
                 binding.nameField.setText(name)
-
                 val pic=
                     obj.getJSONObject("picture").getJSONObject("data").getString("url")
-                Log.i(TAG, "onActivityResult: $id")
+
                 Picasso.with(App.instance).load(pic)
                     .into(binding.profilePic)
             }catch(e: JSONException){
@@ -266,7 +211,6 @@ class Get_Joke_Fragment : Fragment() {
 
         graphRequest.parameters = bundle
         graphRequest.executeAsync()
-
     }
 
 
@@ -278,12 +222,12 @@ class Get_Joke_Fragment : Fragment() {
             if(currentAccessToken== null){
                 LoginManager.getInstance().logOut()
 
+                // Clear user information
                 viewModel.toggle_user_login(false)
                 binding.nameField.setText("")
-        binding.profilePic.setImageResource(0)
+              binding.profilePic.setImageResource(0)
             }
         }
-
     }
 
 
@@ -292,8 +236,7 @@ class Get_Joke_Fragment : Fragment() {
 
         accessTokenTracker.stopTracking()
         handler.shutdown()
-//        binding.nameField.setText("")
-//        binding.profilePic.setImageResource(0)
+
     }
 
     fun showSnackbar(view:View, msg :String){
@@ -304,6 +247,7 @@ class Get_Joke_Fragment : Fragment() {
         )
         snackbar.duration = 5000
         snackbar.setAnchorView(binding.btnSaveJoke)
+
         snackbar.animationMode = BaseTransientBottomBar.ANIMATION_MODE_SLIDE
         snackbar.setAction("OKAY") {
             snackbar.dismiss()
@@ -322,8 +266,13 @@ class Get_Joke_Fragment : Fragment() {
             call.enqueue(object : Callback<Joke> {
                 override fun onFailure(call: Call<Joke>, t: Throwable) {
                     Log.i(ContentValues.TAG, "onFailure: ${t.printStackTrace()}")
-                    Toast.makeText(App.instance, "something went wrong, " +
-                            "please try again", Toast.LENGTH_SHORT)
+
+                    uiHandler.post {
+                        Toast.makeText(
+                            App.instance, "something went wrong, " +
+                                    "please try again", Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
 
                 override fun onResponse(
@@ -334,15 +283,12 @@ class Get_Joke_Fragment : Fragment() {
                     Log.i(ContentValues.TAG, "onResponse: ${response.body()}")
                     uiHandler.post{
 
-
                         currentJoke = response.body()
                        binding.getJokeText.text = currentJoke?.joke
 
                         viewModel.toggle_fetch_status(true)
                     }
-
                 }
-
             })
         }catch(e:Exception){
             e.printStackTrace()

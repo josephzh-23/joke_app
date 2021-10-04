@@ -19,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.joke_app.*
 import com.example.joke_app.databinding.FragmentFavoriteBinding
 import com.google.android.material.snackbar.Snackbar
-import com.ledsmart.grow3.Syncing.Modes_RecyclerAdapter
+import com.ledsmart.grow3.Syncing.Joke_RecyclerAdapter
 import android.R
 
 import com.example.joke_app.MainActivity
@@ -29,20 +29,14 @@ import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 import java.util.concurrent.Callable
 
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [FavoriteFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class FavoriteFragment : Fragment(), OnItemClickListener {
+
+
+class FavoriteFragment : Fragment(){
+
     private var _binding: FragmentFavoriteBinding?=null
     private val binding get() = _binding!!
-    private lateinit var listAdapter: Modes_RecyclerAdapter
+    private lateinit var listAdapter: Joke_RecyclerAdapter
 
     var recyclerView: RecyclerView?=null
     lateinit var  dbTask: DbTask
@@ -57,20 +51,12 @@ class FavoriteFragment : Fragment(), OnItemClickListener {
     lateinit var viewModel: View_Model
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-
-
-
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         _binding = FragmentFavoriteBinding.inflate(inflater, container, false)
         Log.i(TAG, "onCreateView: favorite fragment ")
         setupRecyclerView()
@@ -88,7 +74,7 @@ class FavoriteFragment : Fragment(), OnItemClickListener {
             viewModel.load_jokes_from_db()
         }
 
-        subscribeObservers()
+        setupObserver()
         (activity as MainActivity).showProgressBar(false)
         val view = binding.root
         return view
@@ -99,6 +85,11 @@ class FavoriteFragment : Fragment(), OnItemClickListener {
         handler.shutdown()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     val swipeCallback: ItemTouchHelper.SimpleCallback = object :
         ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
@@ -107,14 +98,11 @@ class FavoriteFragment : Fragment(), OnItemClickListener {
             val position = viewHolder.adapterPosition
             when(direction){
                 ItemTouchHelper.LEFT-> {
-
-
                     val deletedJoke = jokeList.get(position)
-
-
                     dbTask = DbTask({ viewModel.deleteJoke(deletedJoke) }, deletedJoke)
-                    var result = handler.submit(dbTask)
-                    var value = result.get() as Int
+
+                    val result = handler.submit(dbTask)
+                    val value = result.get() as Int
 
                     // If database deletion successful
                     if (value > 0) {
@@ -123,19 +111,16 @@ class FavoriteFragment : Fragment(), OnItemClickListener {
                         listAdapter.notifyItemChanged(position)
 
                         recyclerView?.let {
-                            Snackbar.make(it, "Delete this ", Snackbar.LENGTH_SHORT)
+                            Snackbar.make(it, "Deleted ", Snackbar.LENGTH_LONG)
                                 .setAction("Undo this action", View.OnClickListener {
                                     jokeList.add(deletedJoke)
                                     listAdapter.notifyItemInserted(position)
-                                    Log.i(TAG, "onSwiped: undo selected")
                                 }).show()
                         }
                     }
                 }
                 ItemTouchHelper.RIGHT-> {
-
                 }
-
             }
         }
 
@@ -156,8 +141,6 @@ class FavoriteFragment : Fragment(), OnItemClickListener {
             actionState: Int,
             isCurrentlyActive: Boolean
         ) {
-
-
             RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
                 .addBackgroundColor(
                     ContextCompat.getColor(
@@ -177,77 +160,33 @@ class FavoriteFragment : Fragment(), OnItemClickListener {
                 actionState,
                 isCurrentlyActive
             )
-
-
-
         }
     }
 
 
     private fun setupRecyclerView() {
-        listAdapter = Modes_RecyclerAdapter(jokeList,this)
-
+        listAdapter = Joke_RecyclerAdapter(jokeList)
         recyclerView = binding.jokeRecyclerView
 
         recyclerView?.layoutManager = LinearLayoutManager(activity)
         recyclerView?.addItemDecoration(DividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL))
         recyclerView?.setHasFixedSize(true)
-
         recyclerView?.adapter = listAdapter
-
     }
 
-
-
-
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment FavoriteFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            FavoriteFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
-    }
-
-    private fun subscribeObservers() {
-
-
-
+    // Set up observer to subscribe to changes to jokeList
+    private fun setupObserver() {
         // Based on update from the complete list
         viewModel.jokeList.observe(viewLifecycleOwner, object : Observer<ArrayList<Joke>> {
             @SuppressLint("NotifyDataSetChanged")
+
             override fun onChanged(p0: ArrayList<Joke>?) {
-                Log.i(ContentValues.TAG, "onChanged: recipe coming in ")
                 jokeList.clear()
                 for (i in 0 until viewModel.jokeList.value?.size!!) {
                     jokeList!!.add(viewModel.jokeList.value!![i])
                 }
-
-
                 listAdapter.notifyDataSetChanged()
-
-
             }
-
-
-
         })
     }
-
-    override fun on_item_swiped(position: Int) {
-//        viewModel.removeJoke(jokeList[position])
-    }
-
-
 }
