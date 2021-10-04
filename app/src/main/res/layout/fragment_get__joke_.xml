@@ -14,7 +14,6 @@
         android:layout_height="75dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="16dp"
-        android:text="@string/hello_blank_fragment"
         app:layout_constraintStart_toEndOf="@+id/jokeImage"
         app:layout_constraintTop_toBottomOf="@+id/btn_get_joke" />
 
@@ -54,7 +53,6 @@
         android:layout_width="92dp"
         android:layout_height="41dp"
         android:layout_marginStart="8dp"
-        android:text="TextView"
         app:layout_constraintStart_toEndOf="@+id/profilePic"
         app:layout_constraintTop_toTopOf="@+id/profilePic" />
 
@@ -73,11 +71,11 @@
         android:layout_width="221dp"
         android:layout_height="34dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="100dp"
         android:text="Share joke"
         android:visibility="invisible"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/profilePic" />
+        app:layout_constraintTop_toBottomOf="@+id/nameField" />
 
     <ImageView
         android:id="@+id/jokeImage"

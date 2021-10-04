@@ -23,6 +23,7 @@ import com.facebook.login.LoginResult
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import com.example.joke_app.*
 import com.example.joke_app.R
 import com.facebook.*
@@ -199,6 +200,9 @@ class Get_Joke_Fragment : Fragment() {
         val accessToken = AccessToken.getCurrentAccessToken()
         viewModel.isUserLoggedin.value = accessToken != null && !accessToken.isExpired
 
+        if(viewModel.isUserLoggedin.value!!){
+         get_user_info()
+        }
 
     }
 
@@ -236,7 +240,7 @@ class Get_Joke_Fragment : Fragment() {
     }
     // Get logged-in user information
     private fun get_user_info() {
-        var graphRequest: GraphRequest = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken()){
+        var graphRequest: GraphRequest = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken() ){
                 obj, response->
             Log.i(TAG, "onActivityResult: ${obj.toString()}")
 
@@ -298,7 +302,7 @@ class Get_Joke_Fragment : Fragment() {
             msg,
             Snackbar.LENGTH_LONG
         )
-        snackbar.duration = 10000
+        snackbar.duration = 5000
         snackbar.setAnchorView(binding.btnSaveJoke)
         snackbar.animationMode = BaseTransientBottomBar.ANIMATION_MODE_SLIDE
         snackbar.setAction("OKAY") {
@@ -308,19 +312,18 @@ class Get_Joke_Fragment : Fragment() {
     }
 
     // fetch joke from https://icanhazdadjoke.com
-    fun retrieveJoke():Joke?{
+    private fun retrieveJoke():Joke?{
         var joke: Joke? = null
         try {
             val client =
                 ServiceBuilder.buildService(APIService::class.java)
 
-            // See if this fixes anything
             val call: Call<Joke> = client.get_random_jokes()
             call.enqueue(object : Callback<Joke> {
                 override fun onFailure(call: Call<Joke>, t: Throwable) {
                     Log.i(ContentValues.TAG, "onFailure: ${t.printStackTrace()}")
-
-
+                    Toast.makeText(App.instance, "something went wrong, " +
+                            "please try again", Toast.LENGTH_SHORT)
                 }
 
                 override fun onResponse(
@@ -329,12 +332,10 @@ class Get_Joke_Fragment : Fragment() {
                 ) {
 
                     Log.i(ContentValues.TAG, "onResponse: ${response.body()}")
-
                     uiHandler.post{
 
 
                         currentJoke = response.body()
-                        Log.i(TAG, "onResponse: ${currentJoke?.joke}")
                        binding.getJokeText.text = currentJoke?.joke
 
                         viewModel.toggle_fetch_status(true)

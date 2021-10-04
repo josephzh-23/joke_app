@@ -10,22 +10,13 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-// THis is the orignal file that came from the smart_herd videos
-
-
-/*
-File used to build the base for the server calls
- */
 object ServiceBuilder {
 
     private const val URL = "https://icanhazdadjoke.com/"
 
-
-
     // Create OkHttp Client
     val okHttp = OkHttpClient.Builder()
                                         .callTimeout(5, TimeUnit.SECONDS)
-
 
 
     // Create Retrofit Builder

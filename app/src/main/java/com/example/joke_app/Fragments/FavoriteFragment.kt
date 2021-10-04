@@ -112,42 +112,24 @@ class FavoriteFragment : Fragment(), OnItemClickListener {
                     val deletedJoke = jokeList.get(position)
 
 
-                    dbTask = DbTask({viewModel.deleteJoke(deletedJoke)},  deletedJoke)
-                    var result = handler.submit (dbTask)
+                    dbTask = DbTask({ viewModel.deleteJoke(deletedJoke) }, deletedJoke)
+                    var result = handler.submit(dbTask)
                     var value = result.get() as Int
 
-//                        var task = DbTask()
-//                        task.call()
-//
-//
-//                                    viewModel.addJoke(deletedJoke)
-//
-//
-//                            }
-//
-//                        handler.submit(task.call())
-////                        var result = handler.submit {
-//
-////                        }
-//
-//                        var res = -1
-//                        //Delete joke from database
-//                        res = handler.submit() {
-//                            viewModel.delete_joke_from_db(deletedJoke)
-//                        }
+                    // If database deletion successful
+                    if (value > 0) {
 
+                        jokeList.removeAt(position)
+                        listAdapter.notifyItemChanged(position)
 
-                    Log.i(TAG, "onSwiped: the value deleted $value")
-
-                    jokeList.removeAt(position)
-                    listAdapter.notifyItemChanged(position)
-
-                    recyclerView?.let {
-                        Snackbar.make(it,"Delete this ", Snackbar.LENGTH_SHORT)
-                            .setAction("Undo this action", View.OnClickListener {
-                                jokeList.add(deletedJoke)
-                                listAdapter.notifyItemInserted(position)
-                            }).show()
+                        recyclerView?.let {
+                            Snackbar.make(it, "Delete this ", Snackbar.LENGTH_SHORT)
+                                .setAction("Undo this action", View.OnClickListener {
+                                    jokeList.add(deletedJoke)
+                                    listAdapter.notifyItemInserted(position)
+                                    Log.i(TAG, "onSwiped: undo selected")
+                                }).show()
+                        }
                     }
                 }
                 ItemTouchHelper.RIGHT-> {
